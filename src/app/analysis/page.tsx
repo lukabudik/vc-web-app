@@ -25,9 +25,50 @@ export default function AnalysisPage() {
    const [chatHistory, setChatHistory] = useState<AgentMessage[]>([
       {
          role: "agent",
-         content: `Here is the generated analysis of ${
-            companyParam || "Nvidia"
-         }.\n\nKey Performance Indicators:\n\n• Revenue: $48,880 over the last 12 months\n• 2,671 paid members (up 6.6%)\n• 82% email open rate\n• 1,230 total members (up 9.2%)\n\nThe data indicates consistent growth in revenue streams and user acquisition metrics. The charts demonstrate positive momentum across all primary KPIs.\n\nI can provide deeper insights into any specific metric or trend. What would you like to explore further?`,
+         content: [
+            {
+               text: `I am exploring the company ${
+                  companyParam || "Nvidia"
+               }. Lets start with the fundamentals.`,
+            },
+         ],
+      },
+      {
+         role: "agent",
+         heading: "Researching key people in company",
+         content: [
+            { text: "Searching for CEO" },
+            { text: "Nguya Trung", highlighted: true },
+         ],
+      },
+      {
+         role: "agent",
+         heading: "Researching company overview",
+         content: [
+            { text: "Found information on:" },
+            {
+               text: "bloomberg.com",
+               highlighted: true,
+               url: "https://bloomberg.com",
+            },
+            { text: "Cheap kebab in Prague", highlighted: true },
+         ],
+      },
+      {
+         role: "agent",
+         content: [
+            {
+               text: "Thinking about e-commerce, telco, and virtual assistant chatbots. Stats suggest chatbots could save $11 billion and 2.5 billion hours.",
+            },
+         ],
+      },
+      {
+         role: "agent",
+         content: [{ text: "Searching..." }],
+         status: {
+            text: "Searching... give me 2 more minutes",
+            icon: "loading",
+         },
       },
    ]);
 
@@ -36,7 +77,10 @@ export default function AnalysisPage() {
       if (!chatMessage.trim()) return;
 
       // Add user message to chat history
-      const userMessage: AgentMessage = { role: "user", content: chatMessage };
+      const userMessage: AgentMessage = {
+         role: "user",
+         content: [{ text: chatMessage }],
+      };
       setChatHistory((prev) => [...prev, userMessage]);
 
       // Clear input
@@ -61,8 +105,11 @@ export default function AnalysisPage() {
             ...prev,
             {
                role: "agent",
-               content:
-                  "Sorry, I encountered an error while processing your request.",
+               content: [
+                  {
+                     text: "Sorry, I encountered an error while processing your request.",
+                  },
+               ],
             },
          ]);
       }
@@ -177,9 +224,106 @@ export default function AnalysisPage() {
                                     : ""
                               }`}
                            >
-                              <pre className="text-xs text-white/90 font-sans whitespace-pre-wrap">
-                                 {message.content}
-                              </pre>
+                              {/* Render heading if present */}
+                              {message.heading && (
+                                 <h2 className="text-sm font-semibold mb-2 text-white">
+                                    {message.heading}
+                                 </h2>
+                              )}
+
+                              {/* Render content */}
+                              {message.content &&
+                              Array.isArray(message.content) ? (
+                                 <div className="space-y-1">
+                                    {message.content.map((item, i) => (
+                                       <div
+                                          key={i}
+                                          className="flex items-center"
+                                       >
+                                          {item.url ? (
+                                             <a
+                                                href={item.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className={`text-xs ${
+                                                   item.highlighted
+                                                      ? "text-blue-400 hover:underline"
+                                                      : "text-white/90"
+                                                }`}
+                                             >
+                                                {item.text}
+                                             </a>
+                                          ) : (
+                                             <span
+                                                className={`text-xs ${
+                                                   item.highlighted
+                                                      ? "text-blue-400"
+                                                      : "text-white/90"
+                                                }`}
+                                             >
+                                                {item.text}
+                                             </span>
+                                          )}
+                                       </div>
+                                    ))}
+                                 </div>
+                              ) : message.content &&
+                                typeof message.content === "string" ? (
+                                 <pre className="text-xs text-white/90 font-sans whitespace-pre-wrap">
+                                    {message.content}
+                                 </pre>
+                              ) : null}
+
+                              {/* Render highlighted text (legacy format) */}
+                              {message.highlights &&
+                                 message.highlights.length > 0 && (
+                                    <div className="mt-2 space-y-1">
+                                       {message.highlights.map(
+                                          (highlight, i) => (
+                                             <div
+                                                key={i}
+                                                className="flex items-center"
+                                             >
+                                                {highlight.url ? (
+                                                   <a
+                                                      href={highlight.url}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      className="text-blue-400 hover:underline text-xs"
+                                                   >
+                                                      {highlight.text}
+                                                   </a>
+                                                ) : (
+                                                   <span className="text-blue-400 text-xs">
+                                                      {highlight.text}
+                                                   </span>
+                                                )}
+                                             </div>
+                                          )
+                                       )}
+                                    </div>
+                                 )}
+
+                              {/* Render status message */}
+                              {message.status && (
+                                 <div className="flex items-center gap-2 mt-2">
+                                    {/* Use Standa logo for status messages */}
+                                    <Image
+                                       src="/standa.svg"
+                                       alt="Standa Logo"
+                                       width={16}
+                                       height={16}
+                                       className={
+                                          message.status.icon === "loading"
+                                             ? "animate-pulse"
+                                             : ""
+                                       }
+                                    />
+                                    <span className="text-xs text-white/90">
+                                       {message.status.text}
+                                    </span>
+                                 </div>
+                              )}
                            </div>
                         </div>
                      ))}

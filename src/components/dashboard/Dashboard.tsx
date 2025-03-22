@@ -86,22 +86,35 @@ export function Dashboard({ companyName, data }: DashboardProps) {
          { platform: "Instagram", engagement: 45 },
       ];
 
+      // Default color scale for all charts
+      const defaultColors = [
+         "#4F46E5", // Indigo
+         "#3B82F6", // Blue
+         "#10B981", // Emerald
+         "#8B5CF6", // Violet
+         "#EC4899", // Pink
+         "#F59E0B", // Amber
+         "#EF4444", // Red
+         "#6366F1", // Indigo-500
+      ];
+
+      // Chart configuration using the default color scale
       const chartConfig = {
          visits: {
             label: "Monthly Web Visits",
-            color: "#4F46E5", // Indigo
+            color: defaultColors[0],
          },
          growth: {
             label: "Annual Growth",
-            color: "#10B981", // Emerald
+            color: defaultColors[1],
          },
          market: {
             label: "Market Share",
-            color: "#3B82F6", // Blue
+            color: defaultColors[2],
          },
          social: {
             label: "Social Media Engagement",
-            color: "#8B5CF6", // Violet
+            color: defaultColors[3],
          },
       };
 

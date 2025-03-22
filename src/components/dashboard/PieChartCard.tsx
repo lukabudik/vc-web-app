@@ -37,13 +37,33 @@ export function PieChartCard({ data }: DashboardComponentProps) {
                      cx="50%"
                      cy="50%"
                      outerRadius={60}
-                     fill={`var(--color-${chartData.configKey})`}
                      label={({ name, percent }) =>
                         `${name}: ${(percent * 100).toFixed(0)}%`
                      }
                      labelLine={false}
                      isAnimationActive={true}
-                  />
+                  >
+                     {/* Use default colors for each segment */}
+                     {chartData.chartData.map((entry, index) => {
+                        // Define a default color palette
+                        const colors = [
+                           "#4F46E5", // Indigo
+                           "#3B82F6", // Blue
+                           "#10B981", // Emerald
+                           "#8B5CF6", // Violet
+                           "#EC4899", // Pink
+                           "#F59E0B", // Amber
+                           "#EF4444", // Red
+                           "#6366F1", // Indigo-500
+                        ];
+                        return (
+                           <Cell
+                              key={`cell-${index}`}
+                              fill={colors[index % colors.length]}
+                           />
+                        );
+                     })}
+                  </Pie>
                   <ChartTooltip content={<ChartTooltipContent />} />
                </PieChart>
             </ChartContainer>
