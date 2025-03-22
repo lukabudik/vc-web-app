@@ -14,6 +14,7 @@ import {
    Newspaper,
    Filter,
    MessageSquare,
+   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ import {
    componentRegistry,
    getSizeClass,
 } from "@/lib/dashboard/registry";
+import { DashboardCard } from "./DashboardCard";
 
 interface DashboardProps {
    companyName: string;
@@ -32,7 +34,6 @@ export function Dashboard({ companyName, data }: DashboardProps) {
    const [dashboardComponents, setDashboardComponents] = useState<
       DashboardComponent[]
    >([]);
-   const [activeTimeframe, setActiveTimeframe] = useState("12 months");
 
    // Initialize the dashboard with data
    useEffect(() => {
@@ -381,6 +382,8 @@ export function Dashboard({ companyName, data }: DashboardProps) {
       ]);
    };
 
+   const [isLoading, setIsLoading] = useState(true);
+
    // Render a dashboard component
    const renderComponent = (component: DashboardComponent) => {
       const Component = componentRegistry[component.type];
@@ -392,26 +395,16 @@ export function Dashboard({ companyName, data }: DashboardProps) {
       );
 
       return (
-         <div
+         <DashboardCard 
             key={component.id}
-            className={cn(
-               "border rounded-md p-4 overflow-hidden relative h-full flex-grow self-stretch min-h-0",
-               getSizeClass(component.size)
-            )}
+            id={component.id}
+            title={component.title}
+            icon={component.icon}
+            size={component.size}
+            isChart={isChart}
          >
-            <div className="flex items-center justify-between mb-2">
-               <div className="text-gray-800 text-xs font-medium flex items-center gap-1">
-                  {component.icon}
-                  {component.title}
-               </div>
-            </div>
             <Component data={component.data} />
-
-            {/* Add white gradient mask for charts to handle overflow */}
-            {isChart && (
-               <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
-            )}
-         </div>
+         </DashboardCard>
       );
    };
 
@@ -427,8 +420,38 @@ export function Dashboard({ companyName, data }: DashboardProps) {
 
          {/* All components in a single grid */}
          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {dashboardComponents.map((component) => renderComponent(component))}
+            {/* {dashboardComponents.map((component) => renderComponent(component))} */}
+            {isLoading && <DashboardCard id="loading"  size="large" isChart={false} className="col-span-4 grid items-center">
+               <div className="flex flex-col items-center gap-1">
+               <AnimatedStandaLogo />
+               <p className="text-md font-semibold">Preparing your report</p>
+               <div className="text-xs font-medium opacity-40">Searching for the cheapest kebab in Prague, Žižkov</div>
+               </div>
+            </DashboardCard>}
          </div>
       </div>
    );
 }
+
+const AnimatedStandaLogo = () => {
+   const [currentImage, setCurrentImage] = useState<1 | 2>(1);
+   
+   useEffect(() => {
+      // Set up a timer to swap images every 800ms
+      const timer = setInterval(() => {
+         setCurrentImage(prev => prev === 1 ? 2 : 1);
+      }, 200);
+      
+      // Clean up the timer when component unmounts
+      return () => clearInterval(timer);
+   }, []);
+   
+   return (
+      <div className="flex items-center justify-center relative w-[50px] h-[50px] ">
+         <img 
+            src={`/standa-b${currentImage === 1 ? '' : '-2'}.svg`} 
+            alt="Loading"
+         />
+      </div>
+   );
+};
