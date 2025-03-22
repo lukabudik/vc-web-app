@@ -43,6 +43,7 @@ export function Dashboard({
    const [dynamicComponents, setDynamicComponents] = useState<
       DashboardComponent[]
    >([]);
+   const [artificialLoading, setArtificialLoading] = useState(true);
 
    // Set dynamic components when they change
    useEffect(() => {
@@ -400,7 +401,7 @@ export function Dashboard({
    };
 
    const loadingMessage = {
-      title: "Preparing your report",
+      title: "Preparing startup ANALysis",
       message: "Searching for the cheapest kebab in Prague, Žižkov",
    };
 
@@ -438,8 +439,25 @@ export function Dashboard({
       );
    };
 
+   
    const isError = !isLoading && !data;
    const isSuccess = !isLoading && !!data && dynamicComponents.length > 0;
+
+   // Add this useEffect to handle the timeout
+   useEffect(() => {
+      // Start with artificial loading
+      setArtificialLoading(true);
+      
+      // Set a timeout to end the artificial loading after 4 seconds
+      const timer = setTimeout(() => {
+         setArtificialLoading(false);
+      }, 4000);
+      
+      // Clean up the timeout if the component unmounts
+      return () => clearTimeout(timer);
+   }, []); // Empty dependency array means this runs once when component mounts
+
+   const isRealLoading = artificialLoading || isLoading;
 
    return (
       <div className="max-w-4xl mx-auto text-black">
@@ -451,23 +469,23 @@ export function Dashboard({
             </div>
          </div>
 
-         {isError && (
+         {/* {isError && (
             <div className="flex flex-col items-center justify-center h-full">
                <div className="bg-red-50 border border-red-200 rounded-lg p-4 w-full shadow-sm">
                   <div className="flex items-start space-x-3">
                      <div className="flex-shrink-0">
-                        <svg 
-                           xmlns="http://www.w3.org/2000/svg" 
-                           className="h-6 w-6 text-red-500" 
-                           fill="none" 
-                           viewBox="0 0 24 24" 
-                           stroke="currentColor" 
+                        <svg
+                           xmlns="http://www.w3.org/2000/svg"
+                           className="h-6 w-6 text-red-500"
+                           fill="none"
+                           viewBox="0 0 24 24"
+                           stroke="currentColor"
                            strokeWidth={2}
                         >
-                           <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                           <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                            />
                         </svg>
                      </div>
@@ -476,32 +494,32 @@ export function Dashboard({
                            Unable to load data
                         </h3>
                         <div className="mt-1 text-xs text-red-700">
-                           We encountered a problem while trying to retrieve the latest information. This could be due to a connection issue or temporary service interruption.
+                           We encountered a problem while trying to retrieve the
+                           latest information. This could be due to a connection
+                           issue or temporary service interruption.
                         </div>
                         <div className="mt-3 flex space-x-2">
-                           <button 
+                           <button
                               className="inline-flex items-center px-2.5 py-1.5 border border-red-300 text-xs font-medium rounded text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                               onClick={() => window.location.reload()}
                            >
-                              <svg 
-                                 xmlns="http://www.w3.org/2000/svg" 
-                                 className="h-3.5 w-3.5 mr-1" 
-                                 fill="none" 
-                                 viewBox="0 0 24 24" 
-                                 stroke="currentColor" 
+                              <svg
+                                 xmlns="http://www.w3.org/2000/svg"
+                                 className="h-3.5 w-3.5 mr-1"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor"
                                  strokeWidth={2}
                               >
-                                 <path 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round" 
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                                 <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                                  />
                               </svg>
                               Retry
                            </button>
-                           <button 
-                              className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-red-600 bg-transparent hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                           >
+                           <button className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-red-600 bg-transparent hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                               Contact support
                            </button>
                         </div>
@@ -509,9 +527,15 @@ export function Dashboard({
                   </div>
                </div>
             </div>
-         )}
+         )} */}
 
-         {isLoading && (
+         {!isRealLoading && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {dashboardComponents.map((component) => renderComponent(component))}
+        </div>
+      )}
+
+         {isRealLoading && (
             <DashboardCard
                id="loading"
                size="large"
