@@ -382,7 +382,17 @@ export function Dashboard({ companyName, data }: DashboardProps) {
       ]);
    };
 
-   const [isLoading, setIsLoading] = useState(true);
+   const [loadingMessage, setLoadingMessage] = useState<{
+      title: string;
+      message: string;
+   } | null>(null);
+
+   useEffect(() => {
+      // setLoadingMessage({
+      //    title: "Preparing your report",
+      //    message: "Searching for the cheapest kebab in Prague, Žižkov",
+      // });
+   }, []);
 
    // Render a dashboard component
    const renderComponent = (component: DashboardComponent) => {
@@ -395,7 +405,7 @@ export function Dashboard({ companyName, data }: DashboardProps) {
       );
 
       return (
-         <DashboardCard 
+         <DashboardCard
             key={component.id}
             id={component.id}
             title={component.title}
@@ -420,14 +430,28 @@ export function Dashboard({ companyName, data }: DashboardProps) {
 
          {/* All components in a single grid */}
          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {/* {dashboardComponents.map((component) => renderComponent(component))} */}
-            {isLoading && <DashboardCard id="loading"  size="large" isChart={false} className="col-span-4 grid items-center">
-               <div className="flex flex-col items-center gap-1">
-               <AnimatedStandaLogo />
-               <p className="text-md font-semibold">Preparing your report</p>
-               <div className="text-xs font-medium opacity-40">Searching for the cheapest kebab in Prague, Žižkov</div>
-               </div>
-            </DashboardCard>}
+            {!!loadingMessage ? (
+               <DashboardCard
+                  id="loading"
+                  size="large"
+                  isChart={false}
+                  className="col-span-4 grid items-center"
+               >
+                  <div className="flex flex-col items-center gap-1">
+                     <AnimatedStandaLogo />
+                     <p className="text-md font-semibold">
+                        {loadingMessage.title}
+                     </p>
+                     <div className="text-xs font-medium opacity-40">
+                        {loadingMessage.message}
+                     </div>
+                  </div>
+               </DashboardCard>
+            ) : (
+               dashboardComponents.map((component) =>
+                  renderComponent(component)
+               )
+            )}
          </div>
       </div>
    );
@@ -435,21 +459,21 @@ export function Dashboard({ companyName, data }: DashboardProps) {
 
 const AnimatedStandaLogo = () => {
    const [currentImage, setCurrentImage] = useState<1 | 2>(1);
-   
+
    useEffect(() => {
       // Set up a timer to swap images every 800ms
       const timer = setInterval(() => {
-         setCurrentImage(prev => prev === 1 ? 2 : 1);
+         setCurrentImage((prev) => (prev === 1 ? 2 : 1));
       }, 200);
-      
+
       // Clean up the timer when component unmounts
       return () => clearInterval(timer);
    }, []);
-   
+
    return (
       <div className="flex items-center justify-center relative w-[50px] h-[50px] ">
-         <img 
-            src={`/standa-b${currentImage === 1 ? '' : '-2'}.svg`} 
+         <img
+            src={`/standa-b${currentImage === 1 ? "" : "-2"}.svg`}
             alt="Loading"
          />
       </div>
