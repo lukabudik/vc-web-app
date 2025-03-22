@@ -1,459 +1,124 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Search,
-  Send,
-  BarChart3,
-  LineChart as LineChartIcon,
-  PieChart as PieChartIcon,
-  Users,
-  Code,
-  DollarSign,
-  Globe,
-  Building,
-  Share2,
-  MessageSquare,
-  Newspaper,
-} from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useState, useRef, useEffect } from "react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { DashboardComponent } from "@/components/dashboard/DashboardComponent";
-import { DashboardComponent as DashboardComponentType } from "@/lib/dashboard/registry";
-import {
-  AgentMessage,
-  AgentState,
-  askAgent,
-  searchStartupInfo,
-} from "@/lib/agent/agent-service";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function Home() {
-  const [companyName, setCompanyName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [chatMessage, setChatMessage] = useState("");
-  const [chatHistory, setChatHistory] = useState<AgentMessage[]>([
-    {
-      role: "agent",
-      content:
-        "Hello! I'm your VC analyst assistant. How can I help you research this startup?",
-    },
-  ]);
-  const [dashboardComponents, setDashboardComponents] = useState<
-    DashboardComponentType[]
-  >([]);
+   const [companyName, setCompanyName] = useState("");
+   const [isLoading, setIsLoading] = useState(false);
+   const [isButtonHovered, setIsButtonHovered] = useState(false);
+   const [animationState, setAnimationState] = useState({
+      logoVisible: false,
+      contentVisible: false
+   });
+   const router = useRouter();
+   const logoRef = useRef<HTMLDivElement>(null);
 
-  // Mock data for charts
-  const webVisitsData = [
-    { month: "Jan", visits: 4000 },
-    { month: "Feb", visits: 3000 },
-    { month: "Mar", visits: 5000 },
-    { month: "Apr", visits: 7000 },
-    { month: "May", visits: 6000 },
-    { month: "Jun", visits: 8000 },
-  ];
+   // Handle animations on mount
+   useEffect(() => {
+      // Show logo first
+      setTimeout(() => {
+         setAnimationState(prev => ({ ...prev, logoVisible: true }));
+      }, 200);
+      
+      // Then show content
+      setTimeout(() => {
+         setAnimationState(prev => ({ ...prev, contentVisible: true }));
+      }, 800);
+   }, []);
 
-  const marketShareData = [
-    { name: "Company", value: 30 },
-    { name: "Competitor 1", value: 25 },
-    { name: "Competitor 2", value: 20 },
-    { name: "Competitor 3", value: 15 },
-    { name: "Others", value: 10 },
-  ];
+   // Handle search for a company
+   const handleSearch = async () => {
+      if (!companyName.trim()) return;
 
-  const growthData = [
-    { year: "2020", growth: 20 },
-    { year: "2021", growth: 35 },
-    { year: "2022", growth: 50 },
-    { year: "2023", growth: 65 },
-    { year: "2024", growth: 80 },
-    { year: "2025", growth: 95, predicted: true },
-  ];
+      setIsLoading(true);
 
-  const socialMediaData = [
-    { platform: "Twitter", engagement: 75 },
-    { platform: "LinkedIn", engagement: 90 },
-    { platform: "Facebook", engagement: 60 },
-    { platform: "Instagram", engagement: 45 },
-  ];
+      try {
+         // Add a small delay to show the loading state
+         await new Promise((resolve) => setTimeout(resolve, 800));
 
-  const chartConfig = {
-    visits: {
-      label: "Monthly Web Visits",
-      color: "hsl(var(--chart-1))",
-    },
-    growth: {
-      label: "Annual Growth",
-      color: "hsl(var(--chart-2))",
-    },
-    market: {
-      label: "Market Share",
-      color: "hsl(var(--chart-3))",
-    },
-    social: {
-      label: "Social Media Engagement",
-      color: "hsl(var(--chart-4))",
-    },
-  };
+         // Navigate to the analysis page with the company name as a parameter
+         router.push(`/analysis?company=${encodeURIComponent(companyName)}`);
+      } finally {
+         setIsLoading(false);
+      }
+   };
 
-  // Initialize the dashboard with sample components
-  const initializeDashboard = () => {
-    setDashboardComponents([
-      {
-        id: "key-people",
-        title: "Key People",
-        type: "people",
-        icon: <Users className="h-4 w-4" />,
-        size: "small",
-        data: [
-          { name: "Jane Doe", role: "CEO & Founder", avatar: "JD" },
-          { name: "John Smith", role: "CTO", avatar: "JS" },
-          { name: "Alice Stevens", role: "CFO", avatar: "AS" },
-        ],
-      },
-      {
-        id: "business-model",
-        title: "Business Model",
-        type: "text",
-        icon: <DollarSign className="h-4 w-4" />,
-        size: "small",
-        data: {
-          text: "SaaS subscription model with tiered pricing:",
-          items: [
-            "Basic: $10/month per user",
-            "Professional: $25/month per user",
-            "Enterprise: Custom pricing",
-          ],
-          footer:
-            "Additional revenue from API access and professional services.",
-        },
-      },
-      {
-        id: "tech-stack",
-        title: "Tech Stack",
-        type: "list",
-        icon: <Code className="h-4 w-4" />,
-        size: "small",
-        data: [
-          { title: "Frontend", items: ["React", "Next.js", "TypeScript"] },
-          { title: "Backend", items: ["Node.js", "Express", "PostgreSQL"] },
-          { title: "Infrastructure", items: ["AWS", "Docker", "Kubernetes"] },
-        ],
-      },
-      {
-        id: "tam",
-        title: "Total Addressable Market (TAM)",
-        type: "stat",
-        icon: <Globe className="h-4 w-4" />,
-        size: "small",
-        data: {
-          value: "$4.5B",
-          description:
-            "Global market for enterprise SaaS solutions in this category",
-        },
-      },
-      {
-        id: "sam",
-        title: "Serviceable Addressable Market (SAM)",
-        type: "stat",
-        icon: <Globe className="h-4 w-4" />,
-        size: "small",
-        data: {
-          value: "$1.2B",
-          description:
-            "Market that can be served with current business model and technology",
-        },
-      },
-      {
-        id: "growth",
-        title: "Company Growth + Market Prediction",
-        type: "lineChart",
-        icon: <LineChartIcon className="h-4 w-4" />,
-        size: "large",
-        data: {
-          chartData: growthData,
-          dataKey: "growth",
-          xAxisKey: "year",
-          config: chartConfig,
-          configKey: "growth",
-        },
-      },
-      {
-        id: "web-visits",
-        title: "Monthly Web Visits",
-        type: "barChart",
-        icon: <BarChart3 className="h-4 w-4" />,
-        size: "large",
-        data: {
-          chartData: webVisitsData,
-          dataKey: "visits",
-          xAxisKey: "month",
-          config: chartConfig,
-          configKey: "visits",
-        },
-      },
-      {
-        id: "clients",
-        title: "Clients",
-        type: "text",
-        icon: <Building className="h-4 w-4" />,
-        size: "small",
-        data: {
-          sections: [
-            {
-              title: "Enterprise Clients:",
-              items: [
-                "Acme Corporation",
-                "Globex Industries",
-                "Initech Solutions",
-              ],
-            },
-            {
-              title: "SMB Clients:",
-              description:
-                "Over 500 small and medium businesses across 20 countries",
-            },
-          ],
-        },
-      },
-      {
-        id: "social-media",
-        title: "Social Media Engagement",
-        type: "barChart",
-        icon: <Share2 className="h-4 w-4" />,
-        size: "medium",
-        data: {
-          chartData: socialMediaData,
-          dataKey: "engagement",
-          xAxisKey: "platform",
-          layout: "vertical",
-          config: chartConfig,
-          configKey: "social",
-        },
-      },
-      {
-        id: "competitors",
-        title: "Competitors + Metrics",
-        type: "pieChart",
-        icon: <PieChartIcon className="h-4 w-4" />,
-        size: "large",
-        data: {
-          chartData: marketShareData,
-          dataKey: "value",
-          nameKey: "name",
-          config: chartConfig,
-          configKey: "market",
-          analysis: [
-            {
-              name: "Competitor 1",
-              strengths: "User experience, enterprise integrations",
-              weaknesses: "Pricing, customer support",
-            },
-            {
-              name: "Competitor 2",
-              strengths: "Market presence, feature set",
-              weaknesses: "Outdated technology, slow innovation",
-            },
-          ],
-        },
-      },
-      {
-        id: "mentioned-in",
-        title: "Mentioned In",
-        type: "text",
-        icon: <Newspaper className="h-4 w-4" />,
-        size: "medium",
-        data: {
-          mentions: [
-            {
-              source: "TechCrunch",
-              quote:
-                "One of the most promising startups in the enterprise SaaS space",
-              date: "March 15, 2024",
-            },
-            {
-              source: "Forbes",
-              quote: "Named in '30 Under 30' list for Enterprise Technology",
-              date: "January 5, 2024",
-            },
-            {
-              source: "Gartner",
-              quote: "Positioned as a 'Visionary' in the Magic Quadrant",
-              date: "December 10, 2023",
-            },
-          ],
-        },
-      },
-    ]);
-  };
-
-  // Handle search for a company
-  const handleSearch = async () => {
-    if (!companyName.trim()) return;
-
-    setIsLoading(true);
-
-    // Initialize the dashboard with sample data
-    initializeDashboard();
-
-    // In a real implementation, this would call the agent to search for information
-    try {
-      await searchStartupInfo(companyName, (newComponent) => {
-        setDashboardComponents((prev) => [...prev, newComponent]);
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle sending a message to the agent
-  const handleSendMessage = async () => {
-    if (!chatMessage.trim()) return;
-
-    // Add user message to chat history
-    const userMessage: AgentMessage = { role: "user", content: chatMessage };
-    setChatHistory((prev) => [...prev, userMessage]);
-
-    // Clear input
-    setChatMessage("");
-
-    // Get agent state
-    const agentState: AgentState = {
-      companyName,
-      messages: [...chatHistory, userMessage],
-      isSearching: false,
-    };
-
-    // Ask the agent
-    try {
-      const response = await askAgent(
-        chatMessage,
-        agentState,
-        (newComponent) => {
-          setDashboardComponents((prev) => [...prev, newComponent]);
-        }
-      );
-
-      // Add agent response to chat history
-      setChatHistory((prev) => [...prev, response]);
-    } catch (error) {
-      console.error("Error asking agent:", error);
-      setChatHistory((prev) => [
-        ...prev,
-        {
-          role: "agent",
-          content:
-            "Sorry, I encountered an error while processing your request.",
-        },
-      ]);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-6">
-        <h1 className="text-3xl font-bold mb-6">VC Startup Analyzer</h1>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Dashboard Section */}
-          <div className="space-y-6 lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle>Search for a Startup</CardTitle>
-                <CardDescription>
-                  Enter the name of a startup to analyze its potential
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Enter company name..."
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    className="flex-1"
+   return (
+      <div className="min-h-screen bg-background dark flex items-center justify-center">
+         <div className="container max-w-md mx-auto py-6 flex flex-col items-center">
+            <div 
+               ref={logoRef} 
+               className={`flex items-center gap-2 mb-4 transition-all duration-500 ease-out ${
+                  animationState.logoVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+               }`}
+            >
+               <div
+                  className={`transition-transform duration-300 ${
+                     isButtonHovered ? "animate-wiggle" : ""
+                  } ${isLoading ? "animate-pulse-custom" : ""}`}
+               >
+                  <Image
+                     src="/standa.svg"
+                     alt="Standa Logo"
+                     width={29}
+                     height={30}
                   />
-                  <Button onClick={handleSearch} disabled={isLoading}>
-                    {isLoading ? "Searching..." : "Search"}
-                    <Search className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {dashboardComponents.map((component) => (
-                <DashboardComponent
-                  key={component.id}
-                  component={component}
-                  isLoading={isLoading}
-                />
-              ))}
+               </div>
+               <h1 className="text-2xl font-bold text-white">Standa</h1>
             </div>
-          </div>
 
-          {/* Chat Section */}
-          <div className="lg:col-span-1">
-            <Card className="h-[calc(100vh-120px)] flex flex-col sticky top-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Chat with the Agent
-                </CardTitle>
-                <CardDescription>
-                  Ask questions about the startup to get more detailed
-                  information
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-auto border rounded-md p-4 mb-4">
-                <div className="space-y-4">
-                  {chatHistory.map((message, index) => (
-                    <div
-                      key={index}
-                      className={`${
-                        message.role === "agent"
-                          ? "bg-muted"
-                          : "bg-primary text-primary-foreground ml-auto"
-                      } p-3 rounded-lg max-w-[80%] ${
-                        message.role === "user" ? "ml-auto" : ""
-                      }`}
-                    >
-                      <p className="text-sm font-medium">
-                        {message.role === "agent" ? "Agent" : "You"}
-                      </p>
-                      <p>{message.content}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-              <CardFooter className="border-t pt-4">
-                <div className="flex w-full gap-2">
+            <p 
+               className={`text-white/40 font-medium mb-12 text-center transition-all duration-500 delay-100 ease-out ${
+                  animationState.contentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+               }`}
+            >
+               Which startup do you want to analyse?
+            </p>
+
+            <div 
+               className={`w-full max-w-md transition-all duration-500 delay-200 ease-out ${
+                  animationState.contentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+               }`}
+            >
+               <div className="flex items-center gap-2 bg-white/15 rounded-md p-1">
                   <Input
-                    placeholder="Type your question..."
-                    value={chatMessage}
-                    onChange={(e) => setChatMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleSendMessage();
-                      }
-                    }}
-                    className="flex-1"
+                     placeholder="E2B"
+                     value={companyName}
+                     onChange={(e) => setCompanyName(e.target.value)}
+                     className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-white placeholder:text-white/50"
+                     onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                           handleSearch();
+                        }
+                     }}
+                     disabled={isLoading}
+                     autoFocus
                   />
-                  <Button onClick={handleSendMessage}>
-                    <Send className="h-4 w-4" />
+                  <Button
+                     onClick={handleSearch}
+                     disabled={isLoading}
+                     className="bg-white text-black hover:bg-white/90 transition-all duration-300 hover:scale-105"
+                     size="sm"
+                     onMouseEnter={() => setIsButtonHovered(true)}
+                     onMouseLeave={() => setIsButtonHovered(false)}
+                  >
+                     {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                     ) : (
+                        <>
+                           Send
+                           <ArrowRight className="h-4 w-4" />
+                        </>
+                     )}
                   </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          </div>
-        </div>
+               </div>
+            </div>
+         </div>
       </div>
-    </div>
-  );
+   );
 }

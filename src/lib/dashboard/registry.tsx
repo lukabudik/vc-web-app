@@ -2,28 +2,28 @@ import { ReactNode } from "react";
 
 // Define the base component props interface
 export interface DashboardComponentProps {
-  data: any;
+   data: any;
 }
 
 // Define the dashboard component metadata interface
 export interface DashboardComponent {
-  id: string;
-  title: string;
-  type: ComponentType;
-  icon: ReactNode;
-  size: "small" | "medium" | "large";
-  data: any;
+   id: string;
+   title: string;
+   type: ComponentType;
+   icon: ReactNode;
+   size: "small" | "medium" | "large";
+   data: any;
 }
 
 // Define component types
 export type ComponentType =
-  | "people"
-  | "text"
-  | "list"
-  | "stat"
-  | "barChart"
-  | "lineChart"
-  | "pieChart";
+   | "people"
+   | "text"
+   | "list"
+   | "stat"
+   | "barChart"
+   | "lineChart"
+   | "pieChart";
 
 // Import all dashboard components
 import { PeopleCard } from "@/components/dashboard/PeopleCard";
@@ -36,26 +36,26 @@ import { PieChartCard } from "@/components/dashboard/PieChartCard";
 
 // Register all components
 export const componentRegistry: Record<
-  ComponentType,
-  React.ComponentType<DashboardComponentProps>
+   ComponentType,
+   React.ComponentType<DashboardComponentProps>
 > = {
-  people: PeopleCard,
-  text: TextCard,
-  list: ListCard,
-  stat: StatCard,
-  barChart: BarChartCard,
-  lineChart: LineChartCard,
-  pieChart: PieChartCard,
+   people: PeopleCard,
+   text: TextCard,
+   list: ListCard,
+   stat: StatCard,
+   barChart: BarChartCard,
+   lineChart: LineChartCard,
+   pieChart: PieChartCard,
 };
 
 // Helper function to get the CSS class based on component size
 export const getSizeClass = (size: DashboardComponent["size"]): string => {
-  switch (size) {
-    case "large":
-      return "col-span-full";
-    case "medium":
-      return "col-span-1 md:col-span-2";
-    default:
-      return "";
-  }
+   switch (size) {
+      case "large":
+         return "col-span-2 lg:col-span-3 h-64";
+      case "medium":
+         return "col-span-2 h-48";
+      default:
+         return "col-span-1 h-40";
+   }
 };
